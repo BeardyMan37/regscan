@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "regscan"
+version = "0.1.0"
+description = "Regression-based scan statistics for interval anomaly detection in smoothly varying 1D signals"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
+authors = [{ name = "Gazi Abdur Rakib" }]
+keywords = ["scan statistics", "anomaly detection", "kernel regression", "change point", "radio astronomy"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Astronomy",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+]
+
+# The core stays numpy-only on purpose: F_0, F_d and F_KR need nothing else,
+# and a scan statistic that drags in torch is a scan statistic nobody imports.
+dependencies = ["numpy>=1.22", "numba>=0.57"]
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "pytest-cov", "ruff", "mypy"]
+
+[project.urls]
+Homepage = "https://github.com/BeardyMan37/RegressionScanStats"
+Repository = "https://github.com/BeardyMan37/RegressionScanStats"
+Paper = "https://arxiv.org/abs/2608.22201"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/regscan"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py39"
