@@ -28,8 +28,8 @@ dependencies = ["numpy>=1.22", "numba>=0.57"]
 dev = ["pytest>=7", "pytest-cov", "ruff", "mypy"]
 
 [project.urls]
-Homepage = "https://github.com/BeardyMan37/RegressionScanStats"
-Repository = "https://github.com/BeardyMan37/RegressionScanStats"
+Homepage = "https://github.com/BeardyMan37/regscan"
+Repository = "https://github.com/BeardyMan37/regscan"
 Paper = "https://arxiv.org/abs/2608.22201"
 
 [tool.hatch.build.targets.wheel]
