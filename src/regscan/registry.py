@@ -3,25 +3,24 @@
 Every method is registered by name with a *factory*, not an imported
 function. Nothing heavy is imported until a method is actually requested.
 
-This matters: the research module called ``_warmup_stumpy()`` at import time,
-which JIT-compiled a numba kernel on every ``import``. In a script that costs
-you once; in a library it costs every process that imports the package, and
-under a spawn-based process pool it costs every worker even when STUMPY is
-not among the selected methods.
+Import cost is paid per process, and under a spawn-based process pool that
+means per worker. Deferring it keeps ``import regscan`` cheap for callers who
+only want one family, and keeps a worker from compiling code it will never
+call.
 """
 
 from __future__ import annotations
 
-from typing import Callable, Dict
+from typing import Callable
 
-_REGISTRY: Dict[str, dict] = {}
+_REGISTRY: dict[str, dict] = {}
 
 
 def register(name: str, *, factory: Callable[[], Callable], extras: str | None = None,
              family: str = "", doc: str = "") -> None:
     """Register *name*; *factory* is called once, on first use."""
-    _REGISTRY[name] = dict(factory=factory, extras=extras, family=family,
-                           doc=doc, _fn=None)
+    _REGISTRY[name] = {"factory": factory, "extras": extras, "family": family,
+                       "doc": doc, "_fn": None}
 
 
 def available() -> list[str]:
@@ -29,7 +28,7 @@ def available() -> list[str]:
     return sorted(_REGISTRY)
 
 
-def describe() -> Dict[str, dict]:
+def describe() -> dict[str, dict]:
     return {k: {i: j for i, j in v.items() if not i.startswith("_")}
             for k, v in _REGISTRY.items()}
 
@@ -44,7 +43,7 @@ def get(name: str) -> Callable:
             entry["_fn"] = entry["factory"]()
         except ImportError as exc:
             extra = entry["extras"]
-            hint = (f"  pip install 'regression-scan-stats[{extra}]'"
+            hint = (f"  pip install 'regscan[{extra}]'"
                     if extra else "")
             raise ImportError(
                 f"method {name!r} needs an optional dependency: {exc}\n{hint}"
@@ -53,11 +52,13 @@ def get(name: str) -> Callable:
 
 
 def _poly(degree: int):
-    from functools import partial
-
     from . import families
 
-    return partial(families.scan_poly, degree=degree)
+    def run(x, w, r=None, cfg=None):
+        return families.scan_poly(x, w, r, degree=degree, cfg=cfg)
+
+    run.__name__ = f"poly_deg{degree}"
+    return run
 
 
 def _kernel_scan(name: str, kind: str):
@@ -66,17 +67,16 @@ def _kernel_scan(name: str, kind: str):
     A method named ``nwkr_laplace`` must use a Laplace kernel even if the
     caller passes ``ScanConfig(kernel="gaussian")``, so the name wins.
     """
-    from functools import partial
 
     from . import kernel as K
 
     fn = K.scan_nwkr if name == "nwkr" else K.scan_krr
 
-    def run(x, w, cfg=None):
+    def run(x, w, r=None, cfg=None):
         from .config import ScanConfig
 
         cfg = (cfg or ScanConfig()).evolve(kernel=kind)
-        return fn(x, w, cfg=cfg)
+        return fn(x, w, r, cfg=cfg)
 
     run.__name__ = f"{name}_{kind}"
     return run

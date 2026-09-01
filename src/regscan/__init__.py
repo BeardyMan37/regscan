@@ -18,17 +18,26 @@ Quick start
 (150, 179, 0.72)
 """
 
-from .config import ScanConfig
-from .result import ScanResult
 from .api import scan, scan_many
-from .registry import available, describe
-from .window import window_params, default_width, range_cap, sr_factor
+from .config import ScanConfig
 from .families import deramp, epidemic_score
+from .registry import available, describe
+from .result import ScanResult
+from .window import default_width, range_cap, sr_factor, window_params
 
 __version__ = "0.1.0"
 __all__ = [
-    "scan", "scan_many", "ScanConfig", "ScanResult",
-    "available", "describe",
-    "window_params", "default_width", "range_cap", "sr_factor",
-    "deramp", "epidemic_score", "__version__",
+    "ScanConfig",
+    "ScanResult",
+    "__version__",
+    "available",
+    "default_width",
+    "deramp",
+    "describe",
+    "epidemic_score",
+    "range_cap",
+    "scan",
+    "scan_many",
+    "sr_factor",
+    "window_params",
 ]

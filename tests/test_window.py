@@ -1,4 +1,5 @@
 import pytest
+
 from regscan.window import default_width, range_cap, sr_factor, window_params
 
 
